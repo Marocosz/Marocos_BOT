@@ -1,0 +1,1 @@
+Projeto de um BOT de discord em Python 
