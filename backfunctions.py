@@ -18,7 +18,11 @@ def space(nametag):
     if nametag != ' ':
         if '#' in nametag:
             name, tag = nametag.split("#", 1)
-        return name.replace(" ", "")+'#'+tag
+            return name.replace(" ", "")+'#'+tag
+        
+        else:
+            return ' '
+
     else:
         return ' '
 
