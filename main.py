@@ -97,11 +97,11 @@ async def dividir(ctx):
 
     embed_reply.set_footer(text="Discord")
 
-    embed_reply.add_field(name="\n📌 Fudidos 1",
+    embed_reply.add_field(name="\n📌 Team 1",
                 value=f"{team1_names}",
                 inline=False)
 
-    embed_reply.add_field(name="\n📌 Fudidos 2",
+    embed_reply.add_field(name="\n📌 Team 2",
                 value=f"{team2_names}",
                 inline=False)
 
