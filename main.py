@@ -7,7 +7,8 @@ import datetime
 import backfunctions as bf
 import subprocess
 
-TOKEN_Riot = "RGAPI-32ece118-c29b-49b6-8e12-c184fcbeb305"
+TOKEN_Riot = ""
+TOKEN_Discord = ""
 
 # Configurando as permissões do BOT
 permitions = discord.Intents.default()
@@ -295,4 +296,4 @@ async def ajuda(ctx):
     message = await ctx.reply(file=icon_author, embed=embed_help)  
 
 
-bot.run("MTI1Nzc4NjE3MzI1MDg2MzE3NA.GeexZv.n4HohzyNBGssroLdZ7w3y6OnCZPKbclUxVhiXo")
+bot.run(TOKEN_Discord)

@@ -1,7 +1,7 @@
 import requests
 import csv
 
-TOKEN_Riot = "RGAPI-32ece118-c29b-49b6-8e12-c184fcbeb305"
+TOKEN_Riot = ""
 
 # Definindo o Banco de Dados que liga o Campeão ao seu ID
 champ_api_link = 'https://ddragon.leagueoflegends.com/cdn/14.13.1/data/en_US/champion.json'
