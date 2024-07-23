@@ -63,6 +63,7 @@ def data_perfil(nametag):
     if initial_response.status_code == 200:
         initial_dados = initial_response.json()
         PUUID = initial_dados['puuid']
+        print(PUUID)
 
         # Definindo o banco de dados das informações da conta do usuário
         puuid_api_link = f"https://br1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{PUUID}?api_key={TOKEN_Riot}"
@@ -192,60 +193,53 @@ def data_pontuations(nametag):
 
     return pontuations_dados
 
-def pontuations_integrer(nametag):
-    if nametag is str:
-        nametag = data_pontuations(nametag)
-    else:
-        pass
+def pontuations_integrer(data_match):
+    data_pont = reader_csv('pontuations.csv')
+    data_matches = reader_csv('matchesid.csv')
+    
     header = ['Player', 'Kills', 'Deaths', 'Assists', 'Victorys', 'Losses']
-
-    matchesid = reader_csv('matchesid.csv')
-
-    # Verificar se o 'Game Id' ja foi adcionado ao CSV de 'Ids'
-    # para não haver repetição de contagem de partidas já adiconadas
-    for i in range(len(matchesid)):
-        if str(matchesid[i][0]) == str(nametag[-1]):
-
-            print('Essa partida ja foi contabilizada no banco de dados')
-            return 0
+    
+    for id in data_matches:
+        if int(id[0]) == int(data_match[-1]):
             
+            print('Score dessa partida ja foi adicionado!')
+            return 0
     
-    writer_csv('matchesid.csv', [[nametag[-1]]])
-    nametag.pop(-1)
-
-    data = reader_csv('pontuations.csv')
+    writer_csv('matchesid.csv', [[data_match[-1]]])
+    data_match.pop(-1)
     
-    # Se ainda não existir nenhum dado, adcionar o header e também as primeiras pontuções
-    if not data:
+    if not data_pont:
         with open('pontuations.csv', 'a+', newline='', encoding='utf-8') as arq:
-            csvreader = csv.reader(arq)
             csvwriter = csv.writer(arq)
             csvwriter.writerow(header)
-            csvwriter.writerows(nametag)
-        
-        print('Sucesso em Adicionar as pontuações (Nâo havia nada)')
-        return
-    else:
-        # Verificação se a linha de determinado 'Player' existe, para alterar ou adicionar suas pontuações
-        for x in nametag:
+            csvwriter.writerows(data_match)
+            
+        print('Score adicionado com sucesso!')
+        return 1
+    
+    else:    
+        for item_match in data_match:
+            nick_match = item_match[0]
+            
             finded = False
-            for i in range(len(data)):
-                if data[i][0] == x[0]:
-                    data[i][1] = str(int(data[i][1]) + int(x[1]))
-                    data[i][2] = str(int(data[i][2]) + int(x[2]))
-                    data[i][3] = str(int(data[i][3]) + int(x[3]))
-                    data[i][4] = str(int(data[i][4]) + int(x[4]))
-                    data[i][5] = str(int(data[i][5]) + int(x[5]))
+            
+            for item_pont in data_pont:
+                nick_pont = item_pont[0]
+
+                if nick_match == nick_pont:
+                    for i in range(1, 6):
+                        item_pont[i] = int(item_pont[i]) + int(item_match[i])       
                     finded = True
+                    break
+            
             if not finded:
-                    data.append(x)
+                data_pont.append(item_match)
     
-    # Serve para apagar todo conteúdo do CSV
-    with open('pontuations.csv', 'w', encoding='utf-8') as arq:
-        pass
-    
-    # Reescrevendo o conteúdo no CSV
-    writer_csv('pontuations.csv', data)
-                
-    print('Sucesso em Adicionar as pontuações')
-    return 1
+        # Limpando o conteúdo do csv
+        with open('pontuations.csv', 'w') as arquivo:
+            pass  # Não faz nada, apenas abre e fecha o arquivo, o que limpa seu conteúdo
+        
+        writer_csv('pontuations.csv', data_pont)
+        
+        print('Score adicionado com sucesso!')
+        return 2

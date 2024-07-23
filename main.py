@@ -19,6 +19,10 @@ permitions.reactions = True
 # Definindo o BOT e seu prefixo
 bot = commands.Bot(command_prefix=".", intents=permitions)
 
+@bot.event
+async def on_ready():
+    await bot.change_presence(status=discord.Status.online)
+
 # Função 'Evento' ao entrar membro
 @bot.event
 async def on_member_join(membro:discord.Member):
@@ -257,28 +261,27 @@ async def pontuar(ctx, *, nametag=' '):
     bf.pontuations_integrer(nametag)
     await ctx.reply('Pontuação adcionada com sucesso.')
 
-# Comando para pontuar a ultima PERSONALIZADA 
+# Comando para pontuar a partida com seu gameid
 @bot.command()
-async def pontuar_ultima(ctx):
+async def score_matchid(ctx, matchid):
     try:
-        result = subprocess.run(['python', 'C:\\Users\\marco\\Documents\\Pessoal\\Projetos_cod\\Marocos_BOT\\lcu.py'], check=True, capture_output=True)
+        result = subprocess.run(['python', 'C:\\Users\\marco\\Documents\\Pessoal\\Projetos_cod\\Marocos_BOT\\lcu.py', matchid], check=True, capture_output=True, text=True)
         saida = result.stdout.splitlines() # Saídas do arquivo "lcu.py" rodado como subprocesso
+        print(result)
+        print(saida)
 
         # Comparações para determianr a resposta do bot
-        for x in saida:
-            if "b'Essa partida ja foi contabilizada no banco de dados'" == str(x):
-                await ctx.reply(f'A última partida personalizada já havia sido contabilizada!')
-                return 0
-            
-            elif "b'O último jogo não foi uma personalizada.'"  == str(x):
-                await ctx.reply(f'A última partida não foi uma personalizada!')
-                return 0
-    
-        await ctx.reply(f'Pontuação contabilizada com sucesso!')
+        for item in saida:
+            if item == 'Score adicionado com sucesso!':
+                await ctx.reply(f'Score adicionado com sucesso!')
+            elif item == 'Score dessa partida ja foi adicionado!':
+                await ctx.reply(f'Score dessa partida ja foi adicionado!')
+
 
     except subprocess.CalledProcessError as e:
         print(f"Erro ao executar: {e}")
         await ctx.reply(f"Erro ao executar: {e}")
+        await ctx.reply(f'Use um matchid verdadeiro!')
 
 @bot.command()
 async def ajuda(ctx):
@@ -291,9 +294,101 @@ async def ajuda(ctx):
     embed_help.add_field(name='ingame *_nametag league of legends_', value='Comando para ver se o Player está em partida', inline=False)
     embed_help.add_field(name='perfil *_nametag league of legends_', value='Comando para ver ranks e maestrias do Player', inline=False)
     embed_help.add_field(name='lastgame *_nametag league of legends_', value='Comando com informações do último jogo do Player', inline=False)
+    embed_help.add_field(name='score_matchid *_id do game_', value='Comando para adicionar ao banco de dados as informações da personalizada\ndeverá pegar o gameid pelo histórico dentro do lol')
+    embed_help.add_field(name='show_rank *_ordenação_', value='Comando para visualização do rank das personalizadas\nOrdenação: kills, deaths, assists, victories, losses', inline=False)
+
 
 
     message = await ctx.reply(file=icon_author, embed=embed_help)  
 
+@bot.command()
+async def show_rank(ctx, *, type):
+    type = type.lower()
+
+    if type == 'kills':
+        data = bf.reader_csv('pontuations.csv')
+        data.pop(0)
+        data_ordened = sorted(data, key=lambda x: int(x[1]), reverse=True)
+
+    elif type == 'deaths':
+        data = bf.reader_csv('pontuations.csv')
+        data.pop(0)
+        data_ordened = sorted(data, key=lambda x: int(x[2]), reverse=True)
+
+    elif type == 'assists':
+        data = bf.reader_csv('pontuations.csv')
+        data.pop(0)
+        data_ordened = sorted(data, key=lambda x: int(x[3]), reverse=True)
+    
+    elif type == 'victories':
+        data = bf.reader_csv('pontuations.csv')
+        data.pop(0)
+        data_ordened = sorted(data, key=lambda x: int(x[4]), reverse=True)
+    
+    elif type == 'losses':
+        data = bf.reader_csv('pontuations.csv')
+        data.pop(0)
+        data_ordened = sorted(data, key=lambda x: int(x[5]), reverse=True)
+    
+    else:
+        message = await ctx.reply('Comando foi digitado errado!')
+        return
+
+    embed_rank = discord.Embed(title=f"Rank das Personalizadas por {type.title()}", color=0xFFD500)
+
+    icon_author = discord.File('imgs/icon.jpg', 'icon.jpg')
+    embed_rank.set_author(name="Marocos BOT", icon_url="attachment://icon.jpg"
+                              )
+    embed_rank.add_field(name=f'{data_ordened[0][0]}',
+                            value=f'Kills: {data_ordened[0][1]}\nDeaths: {data_ordened[0][2]}\n Assists: {data_ordened[0][3]}\nVictories: {data_ordened[0][4]}\n Losses: {data_ordened[0][5]}', inline=False)
+        
+    embed_rank.add_field(name=f'{data_ordened[1][0]}',
+                            value=f'Kills: {data_ordened[1][1]}\nDeaths: {data_ordened[1][2]}\n Assists: {data_ordened[1][3]}\nVictories: {data_ordened[1][4]}\n Losses: {data_ordened[1][5]}', inline=False)
+        
+    embed_rank.add_field(name=f'{data_ordened[2][0]}',
+                            value=f'Kills: {data_ordened[2][1]}\nDeaths: {data_ordened[2][2]}\n Assists: {data_ordened[2][3]}\nVictories: {data_ordened[2][4]}\n Losses: {data_ordened[2][5]}', inline=False)
+
+    embed_rank.add_field(name=f'-------------------------------------', value='')
+
+    embed_rank.add_field(name=f'{data_ordened[-3][0]}',
+                            value=f'Kills: {data_ordened[-3][1]}\nDeaths: {data_ordened[-3][2]}\n Assists: {data_ordened[-3][3]}\nVictories: {data_ordened[-3][4]}\n Losses: {data_ordened[-3][5]}', inline=False)
+
+    embed_rank.add_field(name=f'{data_ordened[-2][0]}',
+                            value=f'Kills: {data_ordened[-2][1]}\nDeaths: {data_ordened[-2][2]}\n Assists: {data_ordened[-2][3]}\nVictories: {data_ordened[-2][4]}\n Losses: {data_ordened[-2][5]}', inline=False)
+
+    embed_rank.add_field(name=f'{data_ordened[-1][0]}',
+                            value=f'Kills: {data_ordened[-1][1]}\nDeaths: {data_ordened[-1][2]}\n Assists: {data_ordened[-1][3]}\nVictories: {data_ordened[-1][4]}\n Losses: {data_ordened[-1][5]}', inline=False)
+        
+    message = await ctx.reply(file=icon_author, embed=embed_rank)
+
+@bot.command()
+async def rank_nick(ctx, *, nametag):
+    user_data = bf.data_perfil(nametag)
+    data = bf.reader_csv('pontuations.csv')
+    for x in data:
+        if x[0] == user_data[4]:
+            info = x
+            
+    print(info)
+    
+    embed_rank = discord.Embed(title=f"Rank do {user_data[4]}", color=0xFFD500)
+
+    icon_author = discord.File('imgs/icon.jpg', 'icon.jpg')
+    embed_rank.set_author(name="Marocos BOT", icon_url="attachment://icon.jpg")
+    
+    embed_rank.add_field(name=f'',
+                        value=f'Kills: {info[1]}\nDeaths: {info[2]}\n Assists: {info[3]}\nVictories: {info[4]}\n Losses: {info[5]}', inline=False)
+
+    
+
+    message = await ctx.reply(file=icon_author, embed=embed_rank)
+
+@bot.command()
+async def teste(ctx):
+    test = [['Marcos', '2', '3', '4', '5', '6'], ['Arthur', '1', '1', '1', '1', '1'], ['Rogerio', '2', '2', '2', '2', '2'], 123123]
+    bf.pontuations_integrer(test)                
+                          
+
+            
 
 bot.run(TOKEN_Discord)
